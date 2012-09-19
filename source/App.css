@@ -1,10 +1,142 @@
+.tools > * {
+	margin: 3px;
+}
+.divider {
+	color: #F49200;
+	text-transform: uppercase;
+	font-family: Segoe UI, Prelude Medium, Helvetica, Verdana, sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+	margin-bottom: 8px;
+}
+.bar > div > div > * {
+	vertical-align: middle;
+	margin: 0 6px;
+}
+
+/* Fonts ------------------------------- */
+
+body {
+	font-family: 'Play', sans-serif;
+}
+
+.kev .onyx {
+	font-family: 'Play', sans-serif;
+	font-size: 20px;
+}
+
+/* Background colors ------------------------------- */
+
+.kev .onyx-toolbar {
+	border: 1px solid #4775AA;
+	background: #4775FF url(../assets/gradient.png) repeat-x 0 bottom;
+}
+
 /*
-	Put anything you reference with "url()" in ../assets/
-	This way, you can minify your application, and just remove the "source" folder for production
+.kev .onyx-radiobutton {
+	background: #E7E7E7 url(../assets/gradient.png) repeat-x bottom;
+}
 */
-#app {
-	margin: 16px;
-	border-radius: 4px;
-	background-color: silver;
-	padding: 16px;
+
+.kev .onyx-radiobutton.active {
+	background: #4775FF url(../assets/gradient-invert.png) repeat-x top;
+}
+
+.kev .onyx-toolbar .onyx-button {
+	color: #F2F2F2;
+	background-color: #4775DD;
+}
+
+.kev .onyx-groupbox-header {
+	background-color: #4775DD;
+	background: #4775DD url(../assets/gradient.png) repeat-x 0 10px;
+}
+
+.kev .onyx-progress-bar-bar {
+	background: #4775FF url(../../images/gradient.png) repeat-x;
+}
+.kev .onyx-progress-bar-bar.striped {
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.15)), color-stop(0.75, rgba(255, 255, 255, 0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: -ms-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-size: 40px 40px;
+}
+
+
+/* Border radius ------------------------------- */
+
+.kev .onyx-button {
+	border-radius: 15px;
+}
+
+.kev .onyx-toggle-button {
+	border-radius: 15px;
+}
+
+.kev .onyx-toggle-button-knob {
+	border-radius: 15px;
+}
+
+.kev .onyx-input-decorator {
+	border-radius: 15px;
+}
+
+.kev .onyx-menu, .kev .onyx.onyx-menu {
+	border-radius: 15px;
+}
+
+.kev .onyx-groupbox > *:first-child {
+	border-radius: 15px 15px 0 0;
+}
+
+.kev .onyx-groupbox > *:last-child {
+	border-radius: 0 0 15px 15px;
+}
+
+.kev .onyx-groupbox > *:first-child:last-child {
+	border-radius: 15px;
+}
+
+.kev .onyx-groupbox > .onyx-input-decorator:first-child {
+	border-radius: 15px 15px 0 0;
+}
+
+.kev .onyx-groupbox > .onyx-input-decorator:last-child {
+	border-radius: 0 0 15px 15px;
+}
+
+.kev .onyx-groupbox > .onyx-input-decorator:first-child:last-child {
+	border-radius: 15px;
+}
+
+.kev .onyx-toolbar .onyx-menu {
+	border-radius: 0 0 15px 15px;
+}
+
+
+.kev .onyx-toolbar .onyx-menu.onyx-menu-up {
+	border-radius: 15px 15px 0 0;
+}
+
+.kev .onyx-radiobutton:first-child {
+	border-radius: 15px 0 0 15px;
+}
+
+.kev .onyx-radiobutton:last-child {
+	border-radius: 0px 15px 15px 0px;
+}
+
+.kev .onyx-tooltip {
+	border-radius: 15px;
+}
+
+.kev .onyx-progress-bar {
+	border-radius: 15px;
+}
+
+.kev .onyx-progress-bar-bar {
+	border-radius: 15px;
 }
