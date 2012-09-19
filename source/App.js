@@ -69,26 +69,26 @@ enyo.kind({
 			]},
 			{tag: "br"},
 			{classes: "divider", content: "Icon Button"},
-			{kind: "onyx.IconButton", src: "images/menu-icon-bookmark.png"},
+			{kind: "onyx.IconButton", src: "assets/menu-icon-bookmark.png"},
 			{tag: "br"},
 			{tag: "br"},
 			{classes: "divider", content: "Grouped Icon Buttons"},
 			{kind: "Group", components: [
-				{kind: "onyx.IconButton", active: true, src: "images/menu-icon-bookmark.png"},
-				{kind: "onyx.IconButton", src: "images/menu-icon-bookmark.png"},
-				{kind: "onyx.IconButton", src: "images/menu-icon-bookmark.png"}
+				{kind: "onyx.IconButton", active: true, src: "assets/menu-icon-bookmark.png"},
+				{kind: "onyx.IconButton", src: "assets/menu-icon-bookmark.png"},
+				{kind: "onyx.IconButton", src: "assets/menu-icon-bookmark.png"}
 			]},
 			{tag: "br"},
 			{classes: "divider", content: "Icon Buttons in Toolbar"},
 			{kind: "onyx.Toolbar", defaultKind: "onyx.IconButton", components: [
-				{src: "images/menu-icon-bookmark.png"},
-				{src: "images/menu-icon-bookmark.png"},
-				{src: "images/menu-icon-bookmark.png"},
+				{src: "assets/menu-icon-bookmark.png"},
+				{src: "assets/menu-icon-bookmark.png"},
+				{src: "assets/menu-icon-bookmark.png"},
 				{kind: "Control"},
 				{kind: "Group", tag: null, defaultKind: "onyx.IconButton", components: [
-					{active: true, src: "images/menu-icon-bookmark.png"},
-					{src: "images/menu-icon-bookmark.png"},
-					{src: "images/menu-icon-bookmark.png"}
+					{active: true, src: "assets/menu-icon-bookmark.png"},
+					{src: "assets/menu-icon-bookmark.png"},
+					{src: "assets/menu-icon-bookmark.png"}
 				]}
 			]},
 			{tag: "br"},
@@ -127,7 +127,7 @@ enyo.kind({
 				]},
 				{kind: "onyx.InputDecorator", components: [
 					{kind: "onyx.Input", placeholder: "Search term"},
-					{kind: "Image", src: "images/search-input-search.png"}
+					{kind: "Image", src: "assets/search-input-search.png"}
 				]}
 			]},
 			{classes: "divider", content: "RichTexts"},
@@ -137,7 +137,7 @@ enyo.kind({
 				]},
 				{kind: "onyx.InputDecorator", components: [
 					{kind: "onyx.RichText", style: "width: 200px;", placeholder: "Search term"},
-					{kind: "Image", src: "images/search-input-search.png"}
+					{kind: "Image", src: "assets/search-input-search.png"}
 				]}
 			]},
 			{classes: "divider", content: "TextAreas"},
@@ -147,7 +147,7 @@ enyo.kind({
 				]},
 				{kind: "onyx.InputDecorator", components: [
 					{kind: "onyx.TextArea", placeholder: "Search term"},
-					{kind: "Image", src: "images/search-input-search.png"}
+					{kind: "Image", src: "assets/search-input-search.png"}
 				]}
 			]},
 			{tag: "br"},
