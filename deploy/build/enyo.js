@@ -48,6 +48,7 @@ this.machine = e, this.packages = [], this.modules = [], this.sheets = [], this.
 packageName: "",
 packageFolder: "",
 verbose: !1,
+finishCallbacks: {},
 loadScript: function(e) {
 this.machine.script(e);
 },
@@ -70,7 +71,8 @@ var t = this.stack.pop();
 t ? (this.verbose && console.groupEnd("* finish package (" + (t.packageName || "anon") + ")"), this.packageFolder = t.folder, this.packageName = "", this.more(t)) : this.finish();
 },
 finish: function() {
-this.packageFolder = "", this.verbose && console.log("-------------- fini"), this.finishCallback && this.finishCallback();
+this.packageFolder = "", this.verbose && console.log("-------------- fini");
+if (this.finishCallbacks) for (var e in this.finishCallbacks) this.finishCallbacks[e] && (this.finishCallbacks[e](), this.finishCallbacks[e] = null);
 },
 continueBlock: function(e) {
 while (e.index < e.depends.length) {
@@ -83,7 +85,7 @@ if (this.require(t, e)) return !0;
 require: function(e, t) {
 var n = enyo.path.rewrite(e), r = this.getPathPrefix(e);
 n = r + n;
-if (n.slice(-3) == "css") this.verbose && console.log("+ stylesheet: [" + r + "][" + e + "]"), this.requireStylesheet(n); else {
+if (n.slice(-3) == "css" || n.slice(-4) == "less") this.verbose && console.log("+ stylesheet: [" + r + "][" + e + "]"), this.requireStylesheet(n); else {
 if (n.slice(-2) != "js" || n.slice(-10) == "package.js") return this.requirePackage(n, t), !0;
 this.verbose && console.log("+ module: [" + r + "][" + e + "]"), this.requireScript(e, n);
 }
@@ -143,10 +145,13 @@ t.folder = this.packageFolder, this.aliasPackage(e), t.packageName = this.packag
 
 enyo.machine = {
 sheet: function(e) {
-if (!enyo.runtimeLoading) document.write('<link href="' + e + '" media="screen" rel="stylesheet" type="text/css" />'); else {
-var t = document.createElement("link");
-t.href = e, t.media = "screen", t.rel = "stylesheet", t.type = "text/css", document.getElementsByTagName("head")[0].appendChild(t);
-}
+var t = "text/css", n = "stylesheet", r = e.slice(-4) == "less";
+r && (window.less ? (t = "text/less", n = "stylesheet/less") : e = e.slice(0, e.length - 4) + "css");
+var i;
+if (enyo.runtimeLoading || r) i = document.createElement("link"), i.href = e, i.media = "screen", i.rel = n, i.type = t;
+enyo.runtimeLoading ? document.getElementsByTagName("head")[0].appendChild(i) : document.write('<link href="' + e + '" media="screen" rel="' + n + '" type="' + t + '" />'), r && window.less && (less.sheets.push(i), enyo.loader.finishCallbacks.runtimeLoader = function() {
+less.refresh(!0);
+});
 },
 script: function(e, t, n) {
 if (!enyo.runtimeLoading) document.write('<script src="' + e + '"' + (t ? ' onload="' + t + '"' : "") + (n ? ' onerror="' + n + '"' : "") + "></scri" + "pt>"); else {
@@ -169,12 +174,12 @@ function n(r) {
 r && r();
 if (t.length) {
 var i = t.shift(), s = i[0], o = e.isArray(s) ? s : [ s ], u = i[1];
-e.loader.finishCallback = function() {
+e.loader.finishCallbacks.runtimeLoader = function() {
 n(function() {
 u && u(s);
 });
 }, e.loader.packageFolder = "./", e.depends.apply(this, o);
-} else e.runtimeLoading = !1, e.loader.finishCallback = null, e.loader.packageFolder = "";
+} else e.runtimeLoading = !1, e.loader.packageFolder = "";
 }
 var e = window.enyo, t = [];
 e.load = function(r, i) {
@@ -544,7 +549,8 @@ id: "",
 owner: null
 },
 statics: {
-_kindPrefixi: {}
+_kindPrefixi: {},
+_unnamedKindNumber: 0
 },
 defaultKind: "Component",
 handlers: {},
@@ -589,8 +595,8 @@ e.destroyed || e.destroy();
 });
 },
 makeId: function() {
-var e = "_", t = this.owner && this.owner.getId();
-return this.name ? (t ? t + e : "") + this.name : "";
+var e = "_", t = this.owner && this.owner.getId(), n = this.name || "@@" + ++enyo.Component._unnamedKindNumber;
+return (t ? t + e : "") + n;
 },
 ownerChanged: function(e) {
 e && e.removeComponent(this), this.owner && this.owner.addComponent(this), this.id || (this.id = this.makeId());
@@ -616,6 +622,7 @@ adjustComponentProps: function(e) {
 this.defaultProps && enyo.mixin(e, this.defaultProps), e.kind = e.kind || e.isa || this.defaultKind, e.owner = e.owner || this;
 },
 _createComponent: function(e, t) {
+if (!e.kind && "kind" in e) throw "enyo.create: Attempt to create a null kind. Check dependencies for [" + e.name + "].";
 var n = enyo.mixin(enyo.clone(t), e);
 return this.adjustComponentProps(n), enyo.Component.create(n);
 },
@@ -668,7 +675,7 @@ waterfallDown: function(e, t, n) {
 for (var r in this.$) this.$[r].waterfall(e, t, n);
 }
 }), enyo.defaultCtor = enyo.Component, enyo.create = enyo.Component.create = function(e) {
-if (!e.kind && "kind" in e) throw "enyo.create: Attempt to create a null kind. Check dependencies.";
+if (!e.kind && "kind" in e) throw "enyo.create: Attempt to create a null kind. Check dependencies for [" + (e.name || "") + "].";
 var t = e.kind || e.isa || enyo.defaultCtor, n = enyo.constructorForKind(t);
 return n || (console.error('no constructor found for kind "' + t + '"'), n = enyo.Component), new n(e);
 }, enyo.Component.subclass = function(e, t) {
@@ -713,6 +720,7 @@ layoutKind: ""
 handlers: {
 onresize: "resizeHandler"
 },
+addBefore: undefined,
 statics: {
 _resizeFlags: {
 showingOnly: !0
@@ -738,7 +746,7 @@ adjustComponentProps: function(e) {
 e.container = e.container || this, this.inherited(arguments);
 },
 containerChanged: function(e) {
-e && e.removeControl(this), this.container && this.container.addControl(this);
+e && e.removeControl(this), this.container && this.container.addControl(this, this.addBefore);
 },
 parentChanged: function(e) {
 e && e != this.parent && e.removeChild(this);
@@ -784,10 +792,10 @@ return this.controls[e];
 addChild: function(e, t) {
 if (this.controlParent) this.controlParent.addChild(e); else {
 e.setParent(this);
-if (t === undefined) this.children[this.prepend ? "unshift" : "push"](e); else if (t === null) this.children.push(e); else {
-var n = this.indexOfChild(t);
+if (t !== undefined) {
+var n = t === null ? 0 : this.indexOfChild(t);
 this.children.splice(n, 0, e);
-}
+} else this.children.push(e);
 }
 },
 removeChild: function(e) {
@@ -979,26 +987,37 @@ document.cookie = r;
 
 enyo.xhr = {
 request: function(e) {
-var t = this.getXMLHttpRequest(), n = e.method || "GET", r = "sync" in e ? !e.sync : !0;
+var t = this.getXMLHttpRequest(e.url), n = e.method || "GET", r = "sync" in e ? !e.sync : !0;
 e.username ? t.open(n, enyo.path.rewrite(e.url), r, e.username, e.password) : t.open(n, enyo.path.rewrite(e.url), r), enyo.mixin(t, e.xhrFields), this.makeReadyStateHandler(t, e.callback);
 if (e.headers) for (var i in e.headers) t.setRequestHeader(i, e.headers[i]);
 return typeof t.overrideMimeType == "function" && e.mimeType && t.overrideMimeType(e.mimeType), t.send(e.body || null), r || t.onreadystatechange(t), t;
 },
 makeReadyStateHandler: function(e, t) {
-e.onreadystatechange = function() {
+window.XDomainRequest && e instanceof XDomainRequest && (e.onload = function() {
+t && t.apply(null, [ e.responseText, e ]);
+}), e.onreadystatechange = function() {
 e.readyState == 4 && t && t.apply(null, [ e.responseText, e ]);
 };
 },
-getXMLHttpRequest: function() {
+inOrigin: function(e) {
+var t = document.createElement("a"), n = !1;
+t.href = e;
+if (t.protocol === ":" || t.protocol === window.location.protocol && t.hostname === window.location.hostname && t.port === window.location.port) n = !0;
+return n;
+},
+getXMLHttpRequest: function(e) {
+try {
+if (window.XDomainRequest && !this.inOrigin(e) && !/^file:\/\//.test(window.location.href)) return new XDomainRequest;
+} catch (t) {}
 try {
 return new XMLHttpRequest;
-} catch (e) {}
+} catch (t) {}
 try {
 return new ActiveXObject("Msxml2.XMLHTTP");
-} catch (e) {}
+} catch (t) {}
 try {
 return new ActiveXObject("Microsoft.XMLHTTP");
-} catch (e) {}
+} catch (t) {}
 return null;
 }
 };
@@ -1104,7 +1123,7 @@ nextCallbackID: 0
 addScriptElement: function() {
 var e = document.createElement("script");
 e.src = this.src, e.async = "async", this.charset && (e.charset = this.charset), e.onerror = enyo.bind(this, function() {
-this.fail(400), this.removeScriptElement();
+this.fail(400);
 });
 var t = document.getElementsByTagName("script")[0];
 t.parentNode.insertBefore(e, t), this.scriptTag = e;
@@ -1490,7 +1509,7 @@ generateChildHtml: function() {
 var e = "";
 for (var t = 0, n; n = this.children[t]; t++) {
 var r = n.generateHtml();
-n.prepend ? e = r + e : e += r;
+e += r;
 }
 return e;
 },
@@ -1511,12 +1530,12 @@ attributesToNode: function() {
 for (var e in this.attributes) this.attributeToNode(e, this.attributes[e]);
 },
 getParentNode: function() {
-return this.parentNode || this.parent && this.parent.hasNode();
+return this.parentNode || this.parent && (this.parent.hasNode() || this.parent.getParentNode());
 },
 addNodeToParent: function() {
 if (this.node) {
 var e = this.getParentNode();
-e && this[this.prepend ? "insertNodeInParent" : "appendNodeToParent"](e);
+e && (this.addBefore !== undefined ? this.insertNodeInParent(e, this.addBefore && this.addBefore.hasNode()) : this.appendNodeToParent(e));
 }
 },
 appendNodeToParent: function(e) {
@@ -1692,9 +1711,12 @@ events: [ "mousedown", "mouseup", "mouseover", "mouseout", "mousemove", "mousewh
 windowEvents: [ "resize", "load", "unload", "message" ],
 features: [],
 connect: function() {
-var e = enyo.dispatcher;
-for (var t = 0, n; n = e.events[t]; t++) e.listen(document, n);
-for (t = 0, n; n = e.windowEvents[t]; t++) e.listen(window, n);
+var e = enyo.dispatcher, t, n;
+for (t = 0; n = e.events[t]; t++) e.listen(document, n);
+for (t = 0; n = e.windowEvents[t]; t++) {
+if (n === "unload" && typeof window.chrome == "object" && window.chrome.app) continue;
+e.listen(window, n);
+}
 },
 listen: function(e, t) {
 var n = enyo.dispatch;
@@ -1740,7 +1762,17 @@ return enyo.dispatcher.dispatch(e);
 }, enyo.bubble = function(e) {
 var t = e || window.event;
 t && (t.target || (t.target = t.srcElement), enyo.dispatch(t));
-}, enyo.bubbler = "enyo.bubble(arguments[0])", enyo.requiresWindow(enyo.dispatcher.connect);
+}, enyo.bubbler = "enyo.bubble(arguments[0])", function() {
+var e = function() {
+enyo.bubble(arguments[0]);
+};
+enyo.makeBubble = function() {
+var t = Array.prototype.slice.call(arguments, 0), n = t.shift();
+typeof n == "object" && typeof n.hasNode == "function" && enyo.forEach(t, function(t) {
+this.hasNode() && this.node.addEventListener(t, e);
+}, n);
+};
+}(), enyo.requiresWindow(enyo.dispatcher.connect);
 
 // preview.js
 
@@ -2389,10 +2421,10 @@ ondown: "down",
 onmove: "move"
 },
 create: function() {
-this.inherited(arguments), this.horizontalChanged(), this.verticalChanged(), this.maxHeightChanged(), this.container.setAttribute("onscroll", enyo.bubbler);
+this.inherited(arguments), this.horizontalChanged(), this.verticalChanged(), this.maxHeightChanged();
 },
 rendered: function() {
-this.inherited(arguments), this.scrollNode = this.calcScrollNode();
+this.inherited(arguments), enyo.makeBubble(this.container, "scroll"), this.scrollNode = this.calcScrollNode();
 },
 teardownRender: function() {
 this.inherited(arguments), this.scrollNode = null;
@@ -2592,9 +2624,6 @@ showing: !1
 } ],
 components: [ {
 name: "client",
-attributes: {
-onscroll: enyo.bubbler
-},
 classes: "enyo-touch-scroller"
 } ],
 create: function() {
@@ -2609,7 +2638,7 @@ destroy: function() {
 this.container.removeClass("enyo-touch-strategy-container"), this.inherited(arguments);
 },
 rendered: function() {
-this.inherited(arguments), this.calcBoundaries(), this.syncScrollMath(), this.thumb && this.alertThumbs();
+this.inherited(arguments), enyo.makeBubble(this.$.client, "scroll"), this.calcBoundaries(), this.syncScrollMath(), this.thumb && this.alertThumbs();
 },
 scrimChanged: function() {
 this.scrim && !this.$.scrim && this.makeScrim(), !this.scrim && this.$.scrim && this.$.scrim.destroy();
@@ -2777,17 +2806,17 @@ this.$.vthumb.delayHide(e), this.$.hthumb.delayHide(e);
 enyo.kind({
 name: "enyo.TranslateScrollStrategy",
 kind: "TouchScrollStrategy",
+translateOptimized: !1,
 components: [ {
 name: "clientContainer",
 classes: "enyo-touch-scroller",
-attributes: {
-onscroll: enyo.bubbler
-},
 components: [ {
 name: "client"
 } ]
 } ],
-translateOptimized: !1,
+rendered: function() {
+this.inherited(arguments), enyo.makeBubble(this.$.clientContainer, "scroll");
+},
 getScrollSize: function() {
 var e = this.$.client.hasNode();
 return {
@@ -3101,12 +3130,13 @@ name: "enyo.Image",
 noEvents: !1,
 tag: "img",
 attributes: {
-onload: enyo.bubbler,
-onerror: enyo.bubbler,
 draggable: "false"
 },
 create: function() {
 this.noEvents && (delete this.attributes.onload, delete this.attributes.onerror), this.inherited(arguments);
+},
+rendered: function() {
+this.inherited(arguments), enyo.makeBubble(this, "load", "error");
 }
 });
 
@@ -3126,10 +3156,6 @@ onDisabledChange: ""
 defaultFocus: !1,
 tag: "input",
 classes: "enyo-input",
-attributes: {
-onfocus: enyo.bubbler,
-onblur: enyo.bubbler
-},
 handlers: {
 oninput: "input",
 onclear: "clear",
@@ -3139,7 +3165,7 @@ create: function() {
 enyo.platform.ie && (this.handlers.onkeyup = "iekeyup"), this.inherited(arguments), this.placeholderChanged(), this.type && this.typeChanged(), this.valueChanged();
 },
 rendered: function() {
-this.inherited(arguments), this.disabledChanged(), this.defaultFocus && this.focus();
+this.inherited(arguments), enyo.makeBubble(this, "focus", "blur"), this.disabledChanged(), this.defaultFocus && this.focus();
 },
 typeChanged: function() {
 this.setAttribute("type", this.type);

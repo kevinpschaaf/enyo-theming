@@ -13,22 +13,39 @@ SOURCE=$(cd `dirname $0`/../; pwd)
 NAME=${SOURCE##*/}
 
 # target names
-if [ -z $1 ]; then
-	DEPLOY="$NAME$SUFFIX"
-	TARGET="$SOURCE/$FOLDER/$DEPLOY"
-	if [ -d $TARGET ]; then
-		echo "$DEPLOY folder already exists, please rename or remove it and try again."
-		exit 1
-	fi
-else
-	TARGET=$1
-#	read -p "Deploying to $TARGET (will remove existing if present). Are you sure? " -n 1
-#	if [[ ! $REPLY =~ ^[Yy]$ ]]
-#	then
-#	    exit 1
-#	fi
-	rm -rf $TARGET
+DEPLOY="$NAME$SUFFIX"
+TARGET="$SOURCE/$FOLDER/$DEPLOY"
+if [ -d $TARGET ]; then
+	echo "$DEPLOY folder already exists, please rename or remove it and try again."
+	exit 1
 fi
+
+# use less by default
+NO_LESS=""
+
+USAGE="Usage: `basename $0` [-h] [-c] [-o output_dir] args"
+
+# Parse command line options.
+while getopts hco: OPT; do
+    case "$OPT" in
+        h)
+            echo $USAGE
+            exit 0
+            ;;
+        o)
+            TARGET=$OPTARG
+          	rm -rf $TARGET
+            ;;
+        c)
+            NO_LESS="-no-less"
+            ;;
+        \?)
+            # getopts issues an error message
+            echo $USAGE >&2
+            exit 1
+            ;;
+    esac
+done
 	
 echo "This script can create a deployment in $TARGET"
 
@@ -38,7 +55,7 @@ build step
 ==========
 EOF
 
-./minify.sh
+./minify.sh $NO_LESS
 
 cat <<EOF
 =========

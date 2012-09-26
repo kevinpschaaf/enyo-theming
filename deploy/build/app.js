@@ -1459,7 +1459,8 @@ enyo.kind({
 name: "onyx.Drawer",
 published: {
 open: !0,
-orient: "v"
+orient: "v",
+animated: !0
 },
 style: "overflow: hidden; position: relative;",
 tools: [ {
@@ -1472,10 +1473,13 @@ style: "position: relative;",
 classes: "enyo-border-box"
 } ],
 create: function() {
-this.inherited(arguments), this.openChanged();
+this.inherited(arguments), this.animatedChanged(), this.openChanged();
 },
 initComponents: function() {
 this.createChrome(this.tools), this.inherited(arguments);
+},
+animatedChanged: function() {
+!this.animated && this.hasNode() && this.$.animator.isAnimating() && (this.$.animator.stop(), this.animatorEnd());
 },
 openChanged: function() {
 this.$.client.show();
@@ -1483,12 +1487,12 @@ if (this.hasNode()) if (this.$.animator.isAnimating()) this.$.animator.reverse()
 var e = this.orient == "v", t = e ? "height" : "width", n = e ? "top" : "left";
 this.applyStyle(t, null);
 var r = this.hasNode()[e ? "scrollHeight" : "scrollWidth"];
-this.$.animator.play({
+this.animated ? this.$.animator.play({
 startValue: this.open ? 0 : r,
 endValue: this.open ? r : 0,
 dimension: t,
 position: n
-});
+}) : this.animatorEnd();
 } else this.$.client.setShowing(this.open);
 },
 animatorStep: function(e) {
@@ -1505,8 +1509,8 @@ this.container && this.container.resized();
 },
 animatorEnd: function() {
 if (!this.open) this.$.client.hide(); else {
-var e = this.orient == "v" ? "height" : "width", t = this.hasNode();
-t && (t.style[e] = this.$.client.domStyles[e] = null);
+var e = this.orient == "v", t = e ? "height" : "width", n = e ? "top" : "left", r = this.$.client.hasNode();
+r && (r.style[n] = this.$.client.domStyles[n] = null), this.node && (this.node.style[t] = this.domStyles[t] = null);
 }
 this.container && this.container.resized();
 }
@@ -1658,7 +1662,7 @@ this.cancelShow(), this.adjustPosition(!0), this.inherited(arguments);
 },
 applyPosition: function(e) {
 var t = "";
-for (n in e) t += n + ":" + e[n] + (isNaN(e[n]) ? "; " : "px; ");
+for (var n in e) t += n + ":" + e[n] + (isNaN(e[n]) ? "; " : "px; ");
 this.addStyles(t);
 },
 adjustPosition: function(e) {
@@ -1828,7 +1832,7 @@ bottom: "auto"
 });
 }
 e.right > r && (this.floating ? this.applyPosition({
-left: i.left - (e.left + e.width - r)
+left: r - e.width
 }) : this.applyPosition({
 left: -(e.right - r)
 })), e.left < 0 && (this.floating ? this.applyPosition({
@@ -1859,11 +1863,11 @@ this.setShowing(!1);
 enyo.kind({
 name: "onyx.MenuItem",
 kind: "enyo.Button",
-tag: "div",
-classes: "onyx-menu-item",
 events: {
 onSelect: ""
 },
+classes: "onyx-menu-item",
+tag: "div",
 tap: function(e) {
 this.inherited(arguments), this.bubble("onRequestHideMenu"), this.doSelect({
 selected: this,
@@ -2019,8 +2023,8 @@ classes: "onyx-radiobutton"
 enyo.kind({
 name: "onyx.RadioGroup",
 kind: "Group",
-highlander: !0,
-defaultKind: "onyx.RadioButton"
+defaultKind: "onyx.RadioButton",
+highlander: !0
 });
 
 // ToggleButton.js
@@ -2095,6 +2099,41 @@ this.dragging = !1, this.dragged && t.preventTap();
 }
 });
 
+// ToggleIconButton.js
+
+enyo.kind({
+name: "onyx.ToggleIconButton",
+kind: "onyx.Icon",
+published: {
+active: !1,
+value: !1
+},
+events: {
+onChange: ""
+},
+classes: "onyx-icon-button onyx-icon-toggle",
+activeChanged: function() {
+this.addRemoveClass("active", this.value), this.bubble("onActivate");
+},
+updateValue: function(e) {
+this.disabled || (this.setValue(e), this.doChange({
+value: this.value
+}));
+},
+tap: function() {
+this.updateValue(!this.value);
+},
+valueChanged: function() {
+this.setActive(this.value);
+},
+create: function() {
+this.inherited(arguments), this.value = Boolean(this.value || this.active);
+},
+rendered: function() {
+this.inherited(arguments), this.valueChanged(), this.removeClass("onyx-icon");
+}
+});
+
 // Toolbar.js
 
 enyo.kind({
@@ -2132,7 +2171,7 @@ this.cancelShow(), this.adjustPosition(!0), this.inherited(arguments);
 },
 applyPosition: function(e) {
 var t = "";
-for (n in e) t += n + ":" + e[n] + (isNaN(e[n]) ? "; " : "px; ");
+for (var n in e) t += n + ":" + e[n] + (isNaN(e[n]) ? "; " : "px; ");
 this.addStyles(t);
 },
 adjustPosition: function(e) {
@@ -2447,7 +2486,7 @@ statics: {
 addFlyweightClass: function(e, t, n, r) {
 var i = n.flyweight;
 if (i) {
-var s = r != undefined ? r : n.index;
+var s = r !== undefined ? r : n.index;
 i.performOnRow(s, function() {
 e.hasClass(t) ? e.setClassAttribute(e.getClassAttribute()) : e.addClass(t);
 }), e.removeClass(t);
@@ -2456,7 +2495,7 @@ e.hasClass(t) ? e.setClassAttribute(e.getClassAttribute()) : e.addClass(t);
 removeFlyweightClass: function(e, t, n, r) {
 var i = n.flyweight;
 if (i) {
-var s = r != undefined ? r : n.index;
+var s = r !== undefined ? r : n.index;
 i.performOnRow(s, function() {
 e.hasClass(t) ? e.removeClass(t) : e.setClassAttribute(e.getClassAttribute());
 });
@@ -2512,8 +2551,7 @@ classes: "onyx-more-button"
 name: "menu",
 kind: "onyx.Menu",
 scrolling: !1,
-classes: "onyx-more-menu",
-prepend: !0
+classes: "onyx-more-menu"
 } ]
 } ],
 initComponents: function() {
@@ -2531,7 +2569,7 @@ this.addRemoveClass("active", t.originator.active);
 popItem: function() {
 var e = this.findCollapsibleItem();
 if (e) {
-this.movedClass && this.movedClass.length > 0 && !e.hasClass(this.movedClass) && e.addClass(this.movedClass), this.$.menu.addChild(e);
+this.movedClass && this.movedClass.length > 0 && !e.hasClass(this.movedClass) && e.addClass(this.movedClass), this.$.menu.addChild(e, null);
 var t = this.$.menu.hasNode();
 return t && e.hasNode() && e.insertNodeInParent(t), !0;
 }
@@ -2542,10 +2580,10 @@ if (t) {
 this.movedClass && this.movedClass.length > 0 && t.hasClass(this.movedClass) && t.removeClass(this.movedClass), this.$.client.addChild(t);
 var n = this.$.client.hasNode();
 if (n && t.hasNode()) {
-var r = undefined, i;
+var r, i;
 for (var s = 0; s < this.$.client.children.length; s++) {
 var o = this.$.client.children[s];
-if (o.toolbarIndex != undefined && o.toolbarIndex != s) {
+if (o.toolbarIndex !== undefined && o.toolbarIndex != s) {
 r = o, i = s;
 break;
 }
@@ -2575,7 +2613,7 @@ findCollapsibleItem: function() {
 var e = this.$.client.children;
 for (var t = e.length - 1; c = e[t]; t--) {
 if (!c.unmoveable) return c;
-c.toolbarIndex == undefined && (c.toolbarIndex = t);
+c.toolbarIndex === undefined && (c.toolbarIndex = t);
 }
 }
 });
